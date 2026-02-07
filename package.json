@@ -1,0 +1,27 @@
+{
+    "name": "arknights-endfield-auto-checkin",
+    "version": "2.0.0",
+    "description": "Automated daily check-in service for Arknights: Endfield (Docker version with Web UI)",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "node src/server.js",
+        "worker": "node src/worker.js"
+    },
+    "keywords": [
+        "arknights",
+        "endfield",
+        "auto-checkin",
+        "docker",
+        "web-ui"
+    ],
+    "author": "",
+    "license": "MIT",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "dependencies": {
+        "express": "^4.18.2",
+        "better-sqlite3": "^9.2.2"
+    }
+}
