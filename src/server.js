@@ -10,10 +10,21 @@ const { performCheckIn } = require('./index');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'endfield'; // Default password
 
 // Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Security Middleware for Admin Routes
+const adminAuth = (req, res, next) => {
+    const token = req.headers['x-admin-token'];
+    if (token === ADMIN_PASSWORD) {
+        next();
+    } else {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+};
 
 // ==========================================
 // API ROUTES
@@ -111,6 +122,56 @@ app.get('/api/status', (req, res) => {
             success: false,
             message: error.message
         });
+    }
+});
+
+// ==========================================
+// ADMIN ROUTES (Multi-Account)
+// ==========================================
+
+// Get all accounts
+app.get('/api/admin/accounts', adminAuth, (req, res) => {
+    try {
+        const db = getDatabase();
+        const accounts = db.getAllAccounts();
+
+        // Obfuscate tokens for UI
+        const safeAccounts = accounts.map(acc => ({
+            ...acc,
+            token: acc.token.substring(0, 4) + '****************' + acc.token.substring(acc.token.length - 4)
+        }));
+
+        res.json({ success: true, accounts: safeAccounts });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Add new account
+app.post('/api/admin/accounts', adminAuth, (req, res) => {
+    try {
+        const { account_name, token } = req.body;
+        if (!account_name || !token) {
+            return res.status(400).json({ success: false, message: 'Name and token required' });
+        }
+
+        const db = getDatabase();
+        db.addAccount(account_name, token);
+        res.json({ success: true, message: 'Account added' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Delete account
+app.delete('/api/admin/accounts/:id', adminAuth, (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = getDatabase();
+        db.deleteAccount(id);
+        res.json({ success: true, message: 'Account deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 

@@ -56,6 +56,17 @@ class DatabaseManager {
                 days_signed INTEGER
             )
         `);
+
+        // Tokens table for multiple accounts
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS accounts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_name TEXT NOT NULL,
+                token TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_checkin DATETIME
+            )
+        `);
     }
 
     // Config operations
@@ -128,16 +139,44 @@ class DatabaseManager {
             console.log('[DB] Database connection closed');
         }
     }
+    // Account/Token operations
+    addAccount(name, token) {
+        const stmt = this.db.prepare(`
+            INSERT INTO accounts (account_name, token)
+            VALUES (?, ?)
+        `);
+        return stmt.run(name, token);
+    }
+
+    deleteAccount(id) {
+        const stmt = this.db.prepare('DELETE FROM accounts WHERE id = ?');
+        return stmt.run(id);
+    }
+
+    getAllAccounts() {
+        const stmt = this.db.prepare('SELECT id, account_name, token, created_at, last_checkin FROM accounts');
+        return stmt.all();
+    }
+
+    updateAccountLastCheckin(id) {
+        const stmt = this.db.prepare('UPDATE accounts SET last_checkin = CURRENT_TIMESTAMP WHERE id = ?');
+        return stmt.run(id);
+    }
+
+    // Singleton instance
+    static getInstance() {
+        if (!DatabaseManager.instance) {
+            DatabaseManager.instance = new DatabaseManager();
+        }
+        return DatabaseManager.instance;
+    }
 }
 
-// Singleton instance
-let instance = null;
+// Singleton variable outside of class for private scope or just use the static property
+DatabaseManager.instance = null;
 
 function getDatabase() {
-    if (!instance) {
-        instance = new DatabaseManager();
-    }
-    return instance;
+    return DatabaseManager.getInstance();
 }
 
 module.exports = { getDatabase };

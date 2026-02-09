@@ -12,37 +12,50 @@ async function runCheckIn() {
     const db = getDatabase();
 
     try {
-        // Get token from database
-        const token = db.getConfig('account_token');
+        // Get all accounts from database
+        const accounts = db.getAllAccounts();
 
-        if (!token) {
-            console.log('[WORKER] No token configured. Waiting for configuration...');
-            db.addLog('waiting', 'No token configured. Please set it via the web interface.');
+        if (accounts.length === 0) {
+            console.log('[WORKER] No accounts configured. Waiting...');
             return;
         }
 
-        console.log('[WORKER] Starting check-in process...');
+        console.log(`[WORKER] Starting check-in process for ${accounts.length} accounts...`);
 
-        // Perform check-in
-        const result = await performCheckIn(token);
+        // Perform check-in for each account
+        for (const account of accounts) {
+            console.log(`[WORKER] Processing account: ${account.account_name}`);
 
-        // Save result to database
-        if (result.success) {
-            if (result.status === 'success') {
-                db.addLog('success', result.message, result.rewards, result.daysSign);
-            } else if (result.status === 'already_signed') {
-                db.addLog('already_signed', result.message);
+            try {
+                const result = await performCheckIn(account.token);
+
+                // Save result to database
+                if (result.success) {
+                    if (result.status === 'success') {
+                        db.addLog('success', `[${account.account_name}] ${result.message}`, result.rewards, result.daysSign);
+                        db.updateAccountLastCheckin(account.id);
+                    } else if (result.status === 'already_signed') {
+                        db.addLog('already_signed', `[${account.account_name}] ${result.message}`);
+                        db.updateAccountLastCheckin(account.id);
+                    }
+                } else {
+                    db.addLog('error', `[${account.account_name}] ${result.message}`);
+                }
+            } catch (accError) {
+                console.error(`[WORKER] Error for account ${account.account_name}:`, accError.message);
+                db.addLog('error', `[${account.account_name}] ${accError.message}`);
             }
-        } else {
-            db.addLog('error', result.message);
+
+            // Small delay between accounts to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
 
         // Cleanup old logs
         db.cleanupOldLogs();
 
     } catch (error) {
-        console.error('[WORKER] Check-in failed:', error.message);
-        db.addLog('error', `Check-in failed: ${error.message}`);
+        console.error('[WORKER] Fatal check-in error:', error.message);
+        db.addLog('error', `Fatal error: ${error.message}`);
     }
 }
 

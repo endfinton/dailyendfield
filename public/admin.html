@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Endfield Daily</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-light: #f5f5f5;
+            --modal-bg: #1a1d24;
+            --primary: #D3FF00;
+            --primary-text: #292929;
+            --text-main: #e8ecf0;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-light);
+            background-image: url('https://static.skport.com/skport-fe-static/skport-game-tools/images/mainBg.9523e2.png');
+            background-repeat: repeat;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .brand-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #1a1a1a;
+        }
+
+        .card {
+            background: rgba(26, 29, 36, 0.98);
+            border-radius: 4px;
+            padding: 30px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
+            border-top: 5px solid var(--primary);
+            color: white;
+        }
+
+        h2 {
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th {
+            text-align: left;
+            color: var(--text-dim);
+            font-size: 12px;
+            text-transform: uppercase;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+
+        .token-cell {
+            font-family: monospace;
+            color: var(--text-dim);
+            font-size: 12px;
+        }
+
+        .btn-delete {
+            background: none;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Form Styling */
+        .add-form {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: var(--primary-text);
+            border: none;
+            padding: 0 25px;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 13px;
+        }
+
+        /* Auth Overlay */
+        #authOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 17, 21, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-box {
+            background: var(--modal-bg);
+            padding: 40px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid var(--border);
+            max-width: 320px;
+        }
+
+        .auth-box h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #10b981;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 4px;
+            transition: transform 0.3s;
+            z-index: 1100;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Auth Lock -->
+    <div id="authOverlay">
+        <div class="auth-box">
+            <h1>Panel Administrativo</h1>
+            <input type="password" id="adminPass" placeholder="Contraseña Admin"
+                style="width: 100%; margin-bottom: 15px;">
+            <button class="btn-add" style="width: 100%; height: 45px;" onclick="verifyAuth()">Entrar</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <span class="brand-logo">Endfield Daily Admin</span>
+            <a href="index.html" style="color: var(--text-dim); text-decoration: none; font-size: 13px;">← Volver</a>
+        </div>
+
+        <div class="card">
+            <h2><span style="color: var(--primary);">●</span> Gestión de Cuentas</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre de Cuenta</th>
+                        <th>Token (Obscured)</th>
+                        <th>Último Check-in</th>
+                        <th style="width: 80px;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="accountsList">
+                    <!-- Loaded via JS -->
+                </tbody>
+            </table>
+
+            <h2>Añadir Nueva Cuenta</h2>
+            <form class="add-form" id="addForm">
+                <input type="text" id="newName" placeholder="Nombre (ej. Principal)" required>
+                <input type="password" id="newToken" placeholder="ACCOUNT_TOKEN" required>
+                <button type="submit" class="btn-add">Añadir</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let adminToken = '';
+
+        function verifyAuth() {
+            const pass = document.getElementById('adminPass').value;
+            adminToken = pass;
+            loadAccounts();
+        }
+
+        async function loadAccounts() {
+            try {
+                const res = await fetch('/api/admin/accounts', {
+                    headers: { 'x-admin-token': adminToken }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('authOverlay').style.display = 'none';
+                    renderAccounts(data.accounts);
+                } else {
+                    alert('Contraseña incorrecta');
+                }
+            } catch (err) {
+                alert('Error de conexión');
+            }
+        }
+
+        function renderAccounts(accounts) {
+            const tbody = document.getElementById('accountsList');
+            tbody.innerHTML = accounts.map(acc => `
+                <tr>
+                    <td>${acc.account_name}</td>
+                    <td class="token-cell">${acc.token}</td>
+                    <td>${acc.last_checkin || 'Nunca'}</td>
+                    <td>
+                        <button class="btn-delete" onclick="deleteAccount(${acc.id})">Borrar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('addForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('newName').value;
+            const token = document.getElementById('newToken').value;
+
+            try {
+                const res = await fetch('/api/admin/accounts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': adminToken
+                    },
+                    body: JSON.stringify({ account_name: name, token: token })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Cuentad añadida');
+                    document.getElementById('addForm').reset();
+                    loadAccounts();
+                }
+            } catch (err) { alert('Error al añadir'); }
+        };
+
+        async function deleteAccount(id) {
+            if (!confirm('¿Seguro que quieres eliminar esta cuenta?')) return;
+
+            try {
+                const res = await fetch(`/api/admin/accounts/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'x-admin-token': adminToken }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Cuenta eliminada');
+                    loadAccounts();
+                }
+            } catch (err) { alert('Error al eliminar'); }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+
+</html>

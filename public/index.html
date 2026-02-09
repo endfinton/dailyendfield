@@ -4,11 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arknights: Endfield - Auto Check-In</title>
+    <title>Arknight Endfield Daily Auto Check-in</title>
+    <!-- Use Rajdhani as a good match for Novecento Sans Wide for headings -->
     <link
         href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <style>
+        :root {
+            --bg-light: #f5f5f5;
+            --modal-bg: #1a1d24;
+            --primary: #D3FF00;
+            /* Official Lime Green */
+            --primary-text: #292929;
+            --text-main: #e8ecf0;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.05);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,11 +29,14 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: #0a0d14;
-            color: #e8ecf0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-light);
+            /* Official background assets */
+            background-image: url('https://static.skport.com/skport-fe-static/skport-game-tools/images/mainBg.9523e2.png');
+            background-repeat: repeat;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -28,399 +44,300 @@
             overflow-x: hidden;
         }
 
-        /* Animated background */
+        /* Top KV Area style overlay */
         body::before {
             content: '';
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background:
-                radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(251, 146, 60, 0.06) 0%, transparent 50%);
+            height: 480px;
+            /* Approximate height of the KV section */
+            background-image: url('https://static.skport.com/skport-fe-static/skport-game-tools/images/kvBg.8bfe63.png');
+            background-size: cover;
+            background-position: center top;
             z-index: 0;
-            pointer-events: none;
-        }
-
-        /* Grid pattern overlay */
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:
-                linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.5;
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
         }
 
         .container {
-            max-width: 500px;
+            max-width: 440px;
             width: 100%;
             position: relative;
             z-index: 1;
+            margin-top: 140px;
         }
 
-        /* Header Logo */
-        .logo-section {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .logo-title {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 36px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            background: linear-gradient(135deg, #38bdf8 0%, #fb923c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-        }
-
-        .logo-subtitle {
-            font-size: 14px;
-            color: #94a3b8;
-            font-weight: 500;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        /* Card */
-        .card {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(20px);
-            border-radius: 12px;
-            padding: 32px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            box-shadow:
-                0 0 40px rgba(56, 189, 248, 0.1),
-                inset 0 0 60px rgba(56, 189, 248, 0.02);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Card glow effect */
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-
-        .card:hover::before {
-            opacity: 1;
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        /* Header UI similar to official top bar */
+        .brand-header {
+            text-align: left;
             margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid rgba(56, 189, 248, 0.15);
-        }
-
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-            border-radius: 8px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+            gap: 15px;
+        }
+
+        .brand-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 26px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #1a1a1a;
+            white-space: nowrap;
+        }
+
+        .brand-line {
+            height: 2px;
+            flex-grow: 1;
+            background: #1a1a1a;
+            opacity: 0.1;
+        }
+
+        /* Modal / Card */
+        .card {
+            background: rgba(26, 29, 36, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 4px;
+            padding: 40px 32px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+            position: relative;
+            border-top: 5px solid var(--primary);
+        }
+
+        /* Gryphline Logo style heading */
+        .card-header {
+            margin-bottom: 35px;
+            text-align: center;
         }
 
         .card-title {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Form */
+        .card-title svg {
+            width: 140px;
+            fill: white;
+        }
+
+        /* Form styling */
         .form-group {
             margin-bottom: 24px;
         }
 
-        .form-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: #94a3b8;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            opacity: 0.5;
+            font-size: 18px;
         }
 
         .form-input {
             width: 100%;
-            padding: 14px 16px;
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 8px;
-            color: #e8ecf0;
+            padding: 16px 15px 16px 48px;
+            background: var(--input-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: white;
             font-size: 14px;
-            font-family: 'Inter', monospace;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #38bdf8;
-            background: rgba(30, 41, 59, 0.8);
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        .form-input::placeholder {
-            color: #475569;
-        }
-
-        /* Button */
-        .btn {
+        /* Primary Button */
+        .btn-submit {
             width: 100%;
-            padding: 16px;
+            padding: 18px;
+            background: var(--primary);
+            color: var(--primary-text);
             border: none;
-            border-radius: 8px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 16px;
+            border-radius: 4px;
+            font-family: inherit;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-size: 16px;
+            text-transform: capitalize;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             position: relative;
             overflow: hidden;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-            color: white;
-            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
+        .btn-submit:hover:not(:disabled) {
+            background: #e6ff66;
+            transform: translateY(-1px);
         }
 
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(56, 189, 248, 0.5);
-        }
-
-        .btn-primary:hover::before {
-            left: 100%;
-        }
-
-        .btn-primary:active {
+        .btn-submit:active {
             transform: translateY(0);
         }
 
-        .btn-primary:disabled {
+        .btn-submit:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
-        /* Info Box */
-        .info-box {
-            background: rgba(56, 189, 248, 0.05);
-            border: 1px solid rgba(56, 189, 248, 0.15);
-            border-radius: 8px;
-            padding: 14px 16px;
-            margin-bottom: 20px;
-            font-size: 13px;
+        /* Button corner accent */
+        .btn-submit::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 10px 10px;
+            border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+        }
+
+        /* Footer info */
+        .card-footer {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .token-help {
+            font-size: 12px;
             color: #94a3b8;
+            margin-bottom: 20px;
             line-height: 1.6;
         }
 
-        .info-box-icon {
-            display: inline-block;
-            margin-right: 8px;
-            color: #38bdf8;
+        .token-help strong {
+            color: white;
         }
 
-        /* Link Card */
-        .link-card {
-            margin-top: 24px;
-            padding: 16px;
-            background: rgba(251, 146, 60, 0.05);
-            border: 1px solid rgba(251, 146, 60, 0.15);
-            border-radius: 8px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .link-card:hover {
-            background: rgba(251, 146, 60, 0.08);
-            border-color: rgba(251, 146, 60, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .link-card-label {
-            font-size: 11px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .link-card a {
-            color: #fb923c;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
+        .official-link {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .link-card a:hover {
-            color: #fdba74;
-            gap: 10px;
-        }
-
-        /* Success Message */
-        .success-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 8px;
-            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
-            z-index: 1000;
-            animation: slideIn 0.3s ease-out;
-            display: none;
-        }
-
-        .success-message.show {
-            display: block;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 32px;
-            color: #475569;
+            color: var(--primary);
+            text-decoration: none;
             font-size: 12px;
+            font-weight: 500;
+            transition: opacity 0.2s;
         }
 
-        .footer-schedule {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(56, 189, 248, 0.05);
+        .official-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        /* Real Copyright info at the bottom */
+        .site-footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #667;
+            font-size: 10px;
+            line-height: 2;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .schedule-tag {
+            background: rgba(212, 255, 0, 0);
+            color: var(--modal-bg);
+            padding: 4px 12px;
             border-radius: 20px;
-            border: 1px solid rgba(56, 189, 248, 0.1);
-            margin-top: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: inline-block;
+            border: 2px solid rgba(0, 0, 0, 0.2);
         }
 
-        .footer-schedule-icon {
-            color: #38bdf8;
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #10b981;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 4px;
             font-size: 14px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- Logo -->
-        <div class="logo-section">
-            <div class="logo-title">Endfield</div>
-            <div class="logo-subtitle">Auto Check-In Service</div>
+        <div class="brand-header">
+            <span class="brand-logo">Endfield Daily Check-in</span>
+            <div class="brand-line"></div>
         </div>
 
-        <!-- Main Card -->
         <div class="card">
             <div class="card-header">
-                <div class="card-icon">🔐</div>
-                <div class="card-title">Account Setup</div>
-            </div>
-
-            <div class="info-box">
-                <span class="info-box-icon">ℹ️</span>
-                Obtén tu token desde DevTools → Application → Cookies → .skport.com → <strong>ACCOUNT_TOKEN</strong>
+                <div class="card-title">
+                    <img src="logo.png" alt="Endfield Logo" style="width: 150px;">
+                </div>
             </div>
 
             <form id="configForm">
                 <div class="form-group">
-                    <label class="form-label" for="token">Account Token</label>
-                    <input type="password" id="token" class="form-input" placeholder="Ingresa tu ACCOUNT_TOKEN aquí"
-                        required>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔑</span>
+                        <input type="password" id="token" class="form-input" placeholder="ACCOUNT_TOKEN" required>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">
-                    💾 Guardar Configuración
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    Guardar Configuración
                 </button>
             </form>
 
-            <!-- Official Link -->
-            <div class="link-card">
-                <div class="link-card-label">🌐 Página Oficial</div>
-                <a href="https://game.skport.com/endfield/sign-in" target="_blank">
-                    game.skport.com/endfield/sign-in
-                    <span>→</span>
+            <div class="card-footer">
+                <p class="token-help">
+                    How to get the token:
+                    <br>
+                    F12 to open the DevTools -> Cookies -> .skport.com -> ACCOUNT_TOKEN
+                </p>
+                <a href="https://game.skport.com/endfield/sign-in" target="_blank" class="official-link">
+                    Daily Check-in Arknight Endfield.
                 </a>
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <div class="footer-schedule">
-                <span class="footer-schedule-icon">⏰</span>
-                <span>Check-in automático diario a las 20:00 UTC</span>
-            </div>
-        </div>
+        <footer class="site-footer">
+            <div class="schedule-tag">Daily Check-in: 20:00 UTC</div>
+            <div>&copy; 1997-2024 GRYPHLINE. ALL RIGHTS RESERVED.</div>
+            <div>Copyright &copy; Hypergryph / Star Linear</div>
+        </footer>
     </div>
 
-    <!-- Success Message -->
-    <div class="success-message" id="successMessage">
-        ✅ Configuración guardada correctamente
+    <div class="toast" id="toast">
+        Configuración guardada correctamente
     </div>
 
     <script>
-        // Load existing config on page load
+        const tokenInput = document.getElementById('token');
+        const submitBtn = document.getElementById('submitBtn');
+        const toast = document.getElementById('toast');
+
+        // Load existing config
         window.addEventListener('DOMContentLoaded', loadConfig);
 
         async function loadConfig() {
@@ -429,9 +346,8 @@
                 const data = await response.json();
 
                 if (data.success && data.config && data.config.account_token) {
-                    // Show masked token if one exists
-                    document.getElementById('token').value = '••••••••••••••••';
-                    document.getElementById('token').placeholder = 'Token configurado ✓';
+                    tokenInput.value = '••••••••••••••••';
+                    tokenInput.placeholder = 'Token configurado ✓';
                 }
             } catch (error) {
                 console.error('Error loading config:', error);
@@ -442,23 +358,17 @@
         document.getElementById('configForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const token = document.getElementById('token').value;
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const token = tokenInput.value;
 
-            // Don't update if it's the masked value
             if (token === '••••••••••••••••') {
-                showSuccess('Token ya configurado');
+                showToast('Token ya configurado');
                 return;
             }
 
-            if (!token || token.trim() === '') {
-                alert('Por favor ingresa tu ACCOUNT_TOKEN');
-                return;
-            }
+            if (!token.trim()) return;
 
-            // Disable button and show loading
             submitBtn.disabled = true;
-            submitBtn.textContent = '⏳ Guardando...';
+            submitBtn.textContent = 'Guardando...';
 
             try {
                 const response = await fetch('/api/config', {
@@ -470,33 +380,24 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showSuccess('Configuración guardada correctamente');
+                    showToast('Configuración guardada correctamente');
                     loadConfig();
-
-                    // Clear input after saving
-                    setTimeout(() => {
-                        document.getElementById('token').value = '';
-                        loadConfig();
-                    }, 500);
+                    setTimeout(() => { tokenInput.value = ''; loadConfig(); }, 500);
                 } else {
-                    alert('❌ Error: ' + data.message);
+                    alert('Error: ' + data.message);
                 }
             } catch (error) {
-                alert('❌ Error al guardar: ' + error.message);
+                alert('Error al guardar: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = '💾 Guardar Configuración';
+                submitBtn.textContent = 'Guardar Configuración';
             }
         });
 
-        function showSuccess(message) {
-            const successEl = document.getElementById('successMessage');
-            successEl.textContent = '✅ ' + message;
-            successEl.classList.add('show');
-
-            setTimeout(() => {
-                successEl.classList.remove('show');
-            }, 3000);
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
     </script>
 </body>
