@@ -12,8 +12,8 @@ async function runCheckIn() {
     const db = getDatabase();
 
     try {
-        // Get all accounts from database
-        const accounts = db.getAllAccounts();
+        // Get all accounts/tokens from database (unified)
+        const accounts = db.getAllTokens();
 
         if (accounts.length === 0) {
             console.log('[WORKER] No accounts configured. Waiting...');

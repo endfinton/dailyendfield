@@ -6,14 +6,13 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'database.db');
+const DB_PATH = process.env.DB_PATH || path.join(process.cwd(), 'data', 'database.db');
 
 class DatabaseManager {
     constructor() {
         this.db = null;
         this.init();
     }
-
     init() {
         try {
             // Create data directory if it doesn't exist
@@ -28,7 +27,7 @@ class DatabaseManager {
             this.db.pragma('journal_mode = WAL');
 
             this.createTables();
-            console.log('[DB] Database initialized successfully');
+            console.log(`[DB] Database initialized at: ${path.resolve(DB_PATH)}`);
         } catch (error) {
             console.error('[DB] Failed to initialize database:', error);
             throw error;
@@ -161,6 +160,34 @@ class DatabaseManager {
     updateAccountLastCheckin(id) {
         const stmt = this.db.prepare('UPDATE accounts SET last_checkin = CURRENT_TIMESTAMP WHERE id = ?');
         return stmt.run(id);
+    }
+
+    /**
+     * Get all tokens for check-in (from both tables to ensure compatibility)
+     */
+    getAllTokens() {
+        const tokens = [];
+
+        // From config table (legacy/main page)
+        const mainToken = this.getConfig('account_token');
+        if (mainToken) {
+            tokens.push({
+                id: 'main',
+                account_name: 'Principal (Config)',
+                token: mainToken
+            });
+        }
+
+        // From accounts table (admin panel)
+        const accounts = this.getAllAccounts();
+        accounts.forEach(acc => {
+            // Avoid duplicates if same token
+            if (!tokens.find(t => t.token === acc.token)) {
+                tokens.push(acc);
+            }
+        });
+
+        return tokens;
     }
 
     // Singleton instance
