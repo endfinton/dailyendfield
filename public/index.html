@@ -325,7 +325,7 @@
             <div class="schedule-tag">Daily Check-in: 20:00 UTC</div>
             <div>&copy; 1997-2024 GRYPHLINE. ALL RIGHTS RESERVED.</div>
             <div>Copyright &copy; Hypergryph / Star Linear</div>
-            <div style="margin-top: 10px; opacity: 0.5;">V.0.0.2</div>
+            <div style="margin-top: 10px; opacity: 0.5;">V.0.0.4</div>
         </footer>
     </div>
 
@@ -359,19 +359,23 @@
         document.getElementById('configForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const token = tokenInput.value;
+            const token = tokenInput.value.trim();
 
             if (token === '••••••••••••••••') {
                 showToast('Token ya configurado');
                 return;
             }
 
-            if (!token.trim()) return;
+            if (!token) {
+                alert('Por favor, introduce un token');
+                return;
+            }
 
             submitBtn.disabled = true;
             submitBtn.textContent = 'Guardando...';
 
             try {
+                console.log('Enviando token...');
                 const response = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -382,13 +386,13 @@
 
                 if (data.success) {
                     showToast('Configuración guardada correctamente');
-                    loadConfig();
-                    setTimeout(() => { tokenInput.value = ''; loadConfig(); }, 500);
+                    tokenInput.value = '••••••••••••••••';
+                    tokenInput.placeholder = 'Token configurado ✓';
                 } else {
                     alert('Error: ' + data.message);
                 }
             } catch (error) {
-                alert('Error al guardar: ' + error.message);
+                alert('Error de conexión: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Guardar Configuración';

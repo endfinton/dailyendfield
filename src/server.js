@@ -6,7 +6,7 @@
 const express = require('express');
 const path = require('path');
 const { getDatabase } = require('./database');
-const { performCheckIn } = require('./index');
+const { performCheckIn, validateToken } = require('./index');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,29 +55,37 @@ app.get('/api/config', (req, res) => {
 });
 
 // Update configuration
-app.post('/api/config', (req, res) => {
+app.post('/api/config', async (req, res) => {
     try {
         const db = getDatabase();
         const { account_token } = req.body;
 
-        if (account_token !== undefined) {
-            db.setConfig('account_token', account_token);
-        } else {
-            return res.status(400).json({
-                success: false,
-                message: 'account_token is required'
-            });
+        if (!account_token) {
+            return res.status(400).json({ success: false, message: 'account_token is required' });
         }
 
-        res.json({
-            success: true,
-            message: 'Configuration updated successfully'
-        });
+        console.log('[API] Validating token from index...');
+        const isValid = await validateToken(account_token);
+        if (!isValid) {
+            console.log('[API] Token validation failed');
+            return res.status(400).json({ success: false, message: 'Token Inválido o Expirado' });
+        }
+
+        // Check if this token is already in the accounts table
+        const allTokens = db.getAllTokens();
+        const isDuplicate = allTokens.find(t => t.token === account_token && t.id !== 'main');
+        if (isDuplicate) {
+            console.log('[API] Duplicate token detected in accounts table');
+            return res.status(400).json({ success: false, message: 'El token ya está registrado en la lista de cuentas' });
+        }
+
+        console.log('[API] Token validated successfully, saving to config...');
+        db.setConfig('account_token', account_token);
+
+        res.json({ success: true, message: 'Configuration updated successfully' });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        console.error('[API] Error updating config:', error.message);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
@@ -129,16 +137,16 @@ app.get('/api/status', (req, res) => {
 // ADMIN ROUTES (Multi-Account)
 // ==========================================
 
-// Get all accounts
+// Get all accounts (unified list including config token)
 app.get('/api/admin/accounts', adminAuth, (req, res) => {
     try {
         const db = getDatabase();
-        const accounts = db.getAllAccounts();
+        const accounts = db.getAllTokens(); // Use unified tokens list
 
         // Obfuscate tokens for UI
         const safeAccounts = accounts.map(acc => ({
             ...acc,
-            token: acc.token.substring(0, 4) + '****************' + acc.token.substring(acc.token.length - 4)
+            token: acc.token ? (acc.token.substring(0, 4) + '****************' + acc.token.substring(acc.token.length - 4)) : 'Invalid'
         }));
 
         res.json({ success: true, accounts: safeAccounts });
@@ -148,15 +156,24 @@ app.get('/api/admin/accounts', adminAuth, (req, res) => {
 });
 
 // Add new account
-app.post('/api/admin/accounts', adminAuth, (req, res) => {
+app.post('/api/admin/accounts', adminAuth, async (req, res) => {
     try {
         const { account_name, token } = req.body;
         if (!account_name || !token) {
             return res.status(400).json({ success: false, message: 'Name and token required' });
         }
 
+        // Validate token
+        console.log(`[API] Validating token for account: ${account_name}...`);
+        const isValid = await validateToken(token);
+        if (!isValid) {
+            console.log('[API] Admin token validation failed');
+            return res.status(400).json({ success: false, message: 'Token Inválido o Expirado' });
+        }
+
         const db = getDatabase();
         db.addAccount(account_name, token);
+        console.log(`[API] Account added successfully: ${account_name}`);
         res.json({ success: true, message: 'Account added' });
     } catch (error) {
         if (error.code === 'SQLITE_CONSTRAINT' || error.message.includes('already exists')) {

@@ -256,5 +256,6 @@ function computeSign(path, body, timestamp, signToken) {
 
 module.exports = {
     performCheckIn,
+    validateToken: getOAuthCode,
     CONSTANTS
 };
