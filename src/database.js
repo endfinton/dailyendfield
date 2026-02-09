@@ -66,6 +66,11 @@ class DatabaseManager {
                 last_checkin DATETIME
             )
         `);
+
+        // Add unique index to token column if it doesn't exist
+        this.db.exec(`
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_token ON accounts(token)
+        `);
     }
 
     // Config operations
@@ -140,6 +145,17 @@ class DatabaseManager {
     }
     // Account/Token operations
     addAccount(name, token) {
+        // Check if token already exists in accounts table
+        const existingAccount = this.db.prepare('SELECT id FROM accounts WHERE token = ?').get(token);
+        // Check if token exists in config table
+        const mainToken = this.getConfig('account_token');
+
+        if (existingAccount || token === mainToken) {
+            const error = new Error('Token already exists');
+            error.code = 'SQLITE_CONSTRAINT';
+            throw error;
+        }
+
         const stmt = this.db.prepare(`
             INSERT INTO accounts (account_name, token)
             VALUES (?, ?)

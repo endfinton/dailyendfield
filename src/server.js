@@ -159,6 +159,9 @@ app.post('/api/admin/accounts', adminAuth, (req, res) => {
         db.addAccount(account_name, token);
         res.json({ success: true, message: 'Account added' });
     } catch (error) {
+        if (error.code === 'SQLITE_CONSTRAINT' || error.message.includes('already exists')) {
+            return res.status(400).json({ success: false, message: 'El token ya está registrado' });
+        }
         res.status(500).json({ success: false, message: error.message });
     }
 });

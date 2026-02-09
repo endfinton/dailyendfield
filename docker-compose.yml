@@ -1,28 +1,19 @@
-version: '3.8'
-
 services:
   endfield-checkin:
-    build: .
+    build: https://github.com/endfinton/dailyendfield.git
     container_name: endfield-auto-checkin
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - 3001:3001
     volumes:
-      # Persist database
-      - ./data:/app/data
+      - /data/endfield:/app/data
     environment:
-      # OPTIONAL: Timezone for logs (default: UTC)
       - TZ=UTC
-
-      # OPTIONAL: Custom database path
       - DB_PATH=/app/data/database.db
-
-      # OPTIONAL: Custom port (default: 3000)
-      - PORT=3000
-
-    # Logging configuration
+      - PORT=3001
     logging:
-      driver: "json-file"
+      driver: json-file
       options:
-        max-size: "10m"
+        max-size: 10m
         max-file: "3"
+networks: {}
