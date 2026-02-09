@@ -254,7 +254,7 @@
             </form>
         </div>
         <div style="margin-top: 20px; text-align: center; color: var(--text-dim); font-size: 10px; opacity: 0.5;">
-            V.0.0.1
+            V.0.0.2
         </div>
     </div>
 
@@ -320,8 +320,10 @@
                     showToast('Cuenta añadida');
                     document.getElementById('addForm').reset();
                     loadAccounts();
+                } else {
+                    alert('Error: ' + data.message);
                 }
-            } catch (err) { alert('Error al añadir'); }
+            } catch (err) { alert('Error al añadir: ' + err.message); }
         };
 
         async function deleteAccount(id) {

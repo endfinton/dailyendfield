@@ -67,10 +67,14 @@ class DatabaseManager {
             )
         `);
 
-        // Add unique index to token column if it doesn't exist
-        this.db.exec(`
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_token ON accounts(token)
-        `);
+        // Create UNIQUE index to prevent duplicates
+        try {
+            this.db.exec(`
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_token ON accounts(token)
+            `);
+        } catch (idxError) {
+            console.warn('[DB] Warning: Could not create unique index (might have duplicate tokens in DB):', idxError.message);
+        }
     }
 
     // Config operations
